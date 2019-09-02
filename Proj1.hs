@@ -168,7 +168,7 @@ bestGuess (x:xs)
     | (length (x:xs)) > 1500 = [(1, middle (x:xs))]
     | otherwise = ((getScore $ getFrequency $ getFeedbacks x (x:xs), x):(bestGuess xs))
     
-
+-- Return the middle one of the list
 middle :: [a] -> a
 middle [] = error "empty list"
 middle xs = last (take (div ((length xs)+1) 2) xs)
