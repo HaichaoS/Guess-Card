@@ -19,17 +19,10 @@ data GameState = GameState {
 } deriving (Show)
 
 -- Generate options for guesses and answers for initial guess
-getOption :: Int -> [[Card]]
-getOption n = nubOrd [sort x | x <- sequence (replicate n cards), validOption x]
-    where cards = [(Card Club R2) .. (Card Spade Ace)]
-
-nubOrd :: Ord a => [a] -> [a] 
-nubOrd xs = go Data.Set.empty xs
-    where
-    go s (x:xs)
-        | x `Data.Set.member` s = go s xs
-        | otherwise        = x : go (Data.Set.insert x s) xs
-    go _ _                 = []
+getOption :: Int -> [Card] -> [[Card]]
+getOption 0 _ = [[]]
+getOption _ [] = []
+getOption n (x : xs) = map (x :) (getOption (n - 1) xs) ++ getOption n xs
 
 -- Check if the option has repeat cards inside
 validOption :: Eq a => [a] -> Bool
@@ -110,7 +103,8 @@ initialGuess :: Int -> ([Card],GameState)
 initialGuess 0 = error "Cannot guess 0 card"
 initialGuess n = (cards, state)
     where 
-    state = GameState {guessNum=n, guessOption=(getOption n)}
+    state = GameState {guessNum=n, guessOption=(getOption n card)}
+        where card = [(Card Club R2) .. (Card Spade Ace)]
     cards = zipWith Card suits ranks
         where 
         suits = take n [Club ..]
@@ -171,10 +165,10 @@ squareAddScore ((n, s):xs) = n*n + squareAddScore xs
 bestGuess :: [[Card]] -> [(Double, [Card])]
 bestGuess [] = []
 bestGuess (x:xs) 
-    | (length (x:xs)) > 500 = [(1, middle (x:xs))]
+    | (length (x:xs)) > 5000 = [(1, middle (x:xs))]
     | otherwise = ((getScore $ getFrequency $ getFeedbacks x (x:xs), x):(bestGuess xs))
+    
 
 middle :: [a] -> a
 middle [] = error "empty list"
 middle xs = last (take (div ((length xs)+1) 2) xs)
-
