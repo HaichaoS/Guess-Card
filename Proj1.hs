@@ -165,7 +165,7 @@ squareAddScore ((n, s):xs) = n*n + squareAddScore xs
 bestGuess :: [[Card]] -> [(Double, [Card])]
 bestGuess [] = []
 bestGuess (x:xs) 
-    | (length (x:xs)) > 5000 = [(1, middle (x:xs))]
+    | (length (x:xs)) > 1500 = [(1, middle (x:xs))]
     | otherwise = ((getScore $ getFrequency $ getFeedbacks x (x:xs), x):(bestGuess xs))
     
 
