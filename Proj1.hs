@@ -148,7 +148,7 @@ getFrequency :: [(Int,Int,Int,Int,Int)] -> [(Int, [(Int,Int,Int,Int,Int)])]
 getFrequency [] = []
 getFrequency s = sort (map (\x -> (length x, [head x])) . group . sort $ s)
 
--- Calcultate expected values for each guess option
+-- There formulas used to calcultate expected values for each guess option
 getScore :: [(Int, [(Int,Int,Int,Int,Int)])] -> Double 
 getScore [] = 0
 getScore a = (fromIntegral (squareAddScore a)) / (fromIntegral (addScore a))
@@ -165,7 +165,7 @@ squareAddScore ((n, s):xs) = n*n + squareAddScore xs
 bestGuess :: [[Card]] -> [(Double, [Card])]
 bestGuess [] = []
 bestGuess (x:xs) 
-    | (length (x:xs)) > 1500 = [(1, middle (x:xs))]
+    | (length (x:xs)) > 1200 = [(1, middle (x:xs))]
     | otherwise = ((getScore $ getFrequency $ getFeedbacks x (x:xs), x):(bestGuess xs))
     
 -- Return the middle one of the list
