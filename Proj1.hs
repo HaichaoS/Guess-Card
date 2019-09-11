@@ -1,8 +1,14 @@
 -- Proj1.hs
--- Author: Haichao Song 854035
--- Answer for COMP30020 Declarative Programming Project 1: Guessing Cards
+-- Author:   Haichao Song <haichaos@student.unimelb.edu.au>
+-- Purpose:  Answer for COMP30020 Declarative Programming Project 1
+--           Guessing Cards: guess different number of cards from
+--           the feedback of answers
 
 module Proj1 (feedback, initialGuess, nextGuess, GameState) where
+
+----
+-- Library use in this project
+----
 
 import Card
 import Data.List
@@ -28,6 +34,41 @@ getOption n (x : xs) = map (x :) (getOption (n - 1) xs) ++ getOption n xs
 validOption :: Eq a => [a] -> Bool
 validOption [] = True
 validOption (x:xs) = (notElem x xs) && validOption xs
+
+----
+-- Main functions: call and return output for the system
+----
+
+-- Generate feedback for guess
+feedback :: [Card] -> [Card] -> (Int,Int,Int,Int,Int)
+feedback [] _ = (0,0,0,0,0)
+feedback _ [] = (0,0,0,0,0)
+feedback xs ys = (samecards xs ys, lowernum xs ys, matchnum xs ys, highernum xs ys, samesuit xs ys)
+
+-- Give initial guess and generate game state according to cards number
+initialGuess :: Int -> ([Card],GameState)
+initialGuess 0 = error "Cannot guess 0 card"
+initialGuess n = (cards, state)
+    where 
+    state = GameState {guessNum=n, guessOption=(getOption n card)}
+        where card = [(Card Club R2) .. (Card Spade Ace)]
+    cards = zipWith Card suits ranks
+        where 
+        suits = take n [Club ..]
+        ranks = averageNth n [R2 ..]
+
+-- Give next guess and update game state according to the feedback and last guess
+nextGuess :: ([Card],GameState) -> (Int,Int,Int,Int,Int) -> ([Card],GameState)
+nextGuess (x, GameState {guessNum=n, guessOption=go}) fd = 
+    (a, GameState {guessNum=n,guessOption=b})
+    where 
+    b = optionCheck go x fd
+    a = get2 (head (sort (bestGuess b)))
+        where get2 (_, n) = n
+
+----
+-- Supporting functions: help main functions get optput
+----
 
 ----
 -- For the feedback according to guess and answer
@@ -88,27 +129,9 @@ samesuit ((Card s1 r1):xs) ((Card s2 r2):ys)
     | s1 == s2 = 1 + samesuit xs ys
     | otherwise = (samesuit [(Card s1 r1)] ys) + samesuit xs ((Card s2 r2):ys)
 
--- Generate feedback for guess
-feedback :: [Card] -> [Card] -> (Int,Int,Int,Int,Int)
-feedback [] _ = (0,0,0,0,0)
-feedback _ [] = (0,0,0,0,0)
-feedback xs ys = (samecards xs ys, lowernum xs ys, matchnum xs ys, highernum xs ys, samesuit xs ys)
-
 ----
 -- For initial guess part
 ----
-
--- Give initial guess and generate game state according to cards number
-initialGuess :: Int -> ([Card],GameState)
-initialGuess 0 = error "Cannot guess 0 card"
-initialGuess n = (cards, state)
-    where 
-    state = GameState {guessNum=n, guessOption=(getOption n card)}
-        where card = [(Card Club R2) .. (Card Spade Ace)]
-    cards = zipWith Card suits ranks
-        where 
-        suits = take n [Club ..]
-        ranks = averageNth n [R2 ..]
 
 -- return the initial guess cards rank       
 averageNth :: Int -> [t] -> [t]
@@ -116,19 +139,9 @@ averageNth _ [] = []
 averageNth n xs = last (take a xs):(averageNth n (drop a xs))
     where a = div 13 (n+1)
 
-
 ----
 -- For the next guess part
 ----
-
--- Give next guess and update game state according to the feedback and last guess
-nextGuess :: ([Card],GameState) -> (Int,Int,Int,Int,Int) -> ([Card],GameState)
-nextGuess (x, GameState {guessNum=n, guessOption=go}) fd = 
-    (a, GameState {guessNum=n,guessOption=b})
-    where 
-    b = optionCheck go x fd
-    a = get2 (head (sort (bestGuess b)))
-        where get2 (_, n) = n
 
 -- Update options fit for the new feedback 
 optionCheck :: [[Card]] -> [Card] -> (Int,Int,Int,Int,Int) -> [[Card]]
@@ -148,7 +161,7 @@ getFrequency :: [(Int,Int,Int,Int,Int)] -> [(Int, [(Int,Int,Int,Int,Int)])]
 getFrequency [] = []
 getFrequency s = sort (map (\x -> (length x, [head x])) . group . sort $ s)
 
--- There formulas used to calcultate expected values for each guess option
+-- Three formulas used to calcultate expected values for each guess option
 getScore :: [(Int, [(Int,Int,Int,Int,Int)])] -> Double 
 getScore [] = 0
 getScore a = (fromIntegral (squareAddScore a)) / (fromIntegral (addScore a))
@@ -165,7 +178,7 @@ squareAddScore ((n, s):xs) = n*n + squareAddScore xs
 bestGuess :: [[Card]] -> [(Double, [Card])]
 bestGuess [] = []
 bestGuess (x:xs) 
-    | (length (x:xs)) > 1200 = [(1, middle (x:xs))]
+    | (length (x:xs)) > 1300 = [(1, middle (x:xs))]
     | otherwise = ((getScore $ getFrequency $ getFeedbacks x (x:xs), x):(bestGuess xs))
     
 -- Return the middle one of the list
