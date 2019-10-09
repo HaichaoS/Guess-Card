@@ -43,7 +43,8 @@ validOption (x:xs) = (notElem x xs) && validOption xs
 feedback :: [Card] -> [Card] -> (Int,Int,Int,Int,Int)
 feedback [] _ = (0,0,0,0,0)
 feedback _ [] = (0,0,0,0,0)
-feedback xs ys = (samecards xs ys, lowernum xs ys, matchnum xs ys, highernum xs ys, samesuit xs ys)
+feedback xs ys = (samecards xs ys, lowernum xs ys, matchnum xs ys, highernum xs ys, 
+    samesuit xs ys)
 
 -- Give initial guess and generate game state according to cards number
 initialGuess :: Int -> ([Card],GameState)
@@ -179,7 +180,8 @@ bestGuess :: [[Card]] -> [(Double, [Card])]
 bestGuess [] = []
 bestGuess (x:xs) 
     | (length (x:xs)) > 1300 = [(1, middle (x:xs))]
-    | otherwise = ((getScore $ getFrequency $ getFeedbacks x (x:xs), x):(bestGuess xs))
+    | otherwise = ((getScore $ getFrequency $ getFeedbacks x (x:xs), x):
+        (bestGuess xs))
     
 -- Return the middle one of the list
 middle :: [a] -> a
